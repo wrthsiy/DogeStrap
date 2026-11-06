@@ -1,11 +1,14 @@
 ﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 
 using Wpf.Ui.Controls.Interfaces;
 using Wpf.Ui.Mvvm.Contracts;
 
 using Bloxstrap.UI.ViewModels.Settings;
+
+using WpfNavigationItem = Wpf.Ui.Controls.NavigationItem;
 
 namespace Bloxstrap.UI.Elements.Settings
 {
@@ -33,6 +36,39 @@ namespace Bloxstrap.UI.Elements.Settings
                 ShowAlreadyRunningSnackbar();
 
             LoadState();
+
+            // wait until the navigation has finished its own initial navigation, otherwise it would override ours
+            Loaded += (_, _) => Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, new Action(RestoreLastSettingsTab));
+        }
+
+        private const string FastFlagEditorTag = "fastflageditor";
+
+        private IEnumerable<WpfNavigationItem> GetNavigationItems() => RootNavigation.Items.Concat(RootNavigation.Footer).OfType<WpfNavigationItem>();
+
+        private string? GetCurrentTabTag()
+        {
+            Type? pageType = RootFrame.Content?.GetType();
+
+            if (pageType is null)
+                return null;
+
+            string? tag = GetNavigationItems().FirstOrDefault(x => x.PageType == pageType)?.Tag as string;
+
+            // the editor is a hidden sub-page that can't be opened directly, so fall back to its parent tab
+            return tag == FastFlagEditorTag ? "fastflags" : tag;
+        }
+
+        private void RestoreLastSettingsTab()
+        {
+            string tag = _state.LastSettingsTab;
+
+            if (string.IsNullOrEmpty(tag) || tag == FastFlagEditorTag)
+                return;
+
+            var item = GetNavigationItems().FirstOrDefault(x => x.PageType is not null && x.Visibility == Visibility.Visible && x.Tag as string == tag);
+
+            if (item is not null)
+                RootNavigation.Navigate(item.PageType);
         }
 
         public void LoadState()
@@ -94,6 +130,8 @@ namespace Bloxstrap.UI.Elements.Settings
 
             _state.Top = this.Top;
             _state.Left = this.Left;
+
+            _state.LastSettingsTab = GetCurrentTabTag() ?? _state.LastSettingsTab;
 
             App.State.Save();
         }

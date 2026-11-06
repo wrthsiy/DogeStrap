@@ -50,6 +50,28 @@ namespace Bloxstrap.UI.Elements.Settings.Pages
             SetupViewModel();
         }
 
+        private void ResetAllFlagsButton_Click(object sender, RoutedEventArgs e)
+        {
+            var confirm = Frontend.ShowMessageBox(
+                "This will remove ALL Fast Flags, including the ones you added yourself, and save the change immediately. Continue?",
+                MessageBoxImage.Warning, MessageBoxButton.YesNo);
+
+            if (confirm != MessageBoxResult.Yes)
+                return;
+
+            App.FastFlags.Prop.Clear();
+
+            // FastFlagManager.Load() always re-adds this default, so keep the file in the same state as a fresh load
+            App.FastFlags.SetPreset("Rendering.ManualFullscreen", "False");
+
+            App.FastFlags.Save();
+
+            // rebuild the view model so every toggle on this page reflects the cleared flags
+            SetupViewModel();
+
+            Frontend.ShowMessageBox("All Fast Flags have been reset.", MessageBoxImage.Information);
+        }
+
         private void ValidateInt32(object sender, TextCompositionEventArgs e) => e.Handled = e.Text != "-" && !Int32.TryParse(e.Text, out int _);
         
         private void ValidateUInt32(object sender, TextCompositionEventArgs e) => e.Handled = !UInt32.TryParse(e.Text, out uint _);

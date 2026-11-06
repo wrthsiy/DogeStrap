@@ -60,6 +60,8 @@
             <ui:ToggleSwitch IsChecked="{Binding ResetConfiguration, Mode=TwoWay}" />
         </controls:OptionControl>
 
+        <ui:Button Margin="0,8,0,0" Icon="ArrowReset24" Content="Reset All Flags" Appearance="Danger" Click="ResetAllFlagsButton_Click" />
+
         <ui:CardAction Margin="0,8,0,0" Icon="EditSettings24" Command="{Binding OpenFastFlagEditorCommand}" Visibility="{Binding CanShowFastFlagEditor}">
             <StackPanel>
                 <TextBlock FontSize="14" Text="{x:Static resources:Strings.Menu_FastFlagEditor_Title}" />

@@ -26,6 +26,12 @@
         </controls:OptionControl>
 
         <controls:OptionControl
+            Header="Accent color"
+            Description="Doge themes for buttons, toggles and highlights. Press Save to keep your choice.">
+            <ComboBox Width="200" Padding="10,5,10,5" Loaded="DogeAccentComboBox_Loaded" SelectionChanged="DogeAccentComboBox_SelectionChanged" />
+        </controls:OptionControl>
+
+        <controls:OptionControl
             Header="{x:Static resources:Strings.Menu_Appearance_Language_Title}"
             Description="{x:Static resources:Strings.Menu_Appearance_Language_Description}">
             <ComboBox Width="200" Padding="10,5,10,5" ItemsSource="{Binding Languages, Mode=OneTime}" Text="{Binding SelectedLanguage, Mode=TwoWay}" />
