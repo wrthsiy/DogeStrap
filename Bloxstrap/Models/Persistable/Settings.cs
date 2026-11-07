@@ -1,0 +1,46 @@
+﻿using System.Collections.ObjectModel;
+
+namespace Bloxstrap.Models.Persistable
+{
+    public class Settings
+    {
+        // bloxstrap configuration
+        public BootstrapperStyle BootstrapperStyle { get; set; } = BootstrapperStyle.FluentDialog;
+        public BootstrapperIcon BootstrapperIcon { get; set; } = BootstrapperIcon.IconDogeStrap;
+        public string BootstrapperTitle { get; set; } = App.ProjectName;
+        public string BootstrapperIconCustomLocation { get; set; } = "";
+        public Theme Theme { get; set; } = Theme.Default;
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public bool DeveloperMode { get; set; } = false;
+        public bool CheckForUpdates { get; set; } = true;
+        public bool ConfirmLaunches { get; set; } = false;
+        public string Locale { get; set; } = "nil";
+        public bool UseFastFlagManager { get; set; } = true;
+        public bool WPFSoftwareRender { get; set; } = false;
+        public bool EnableAnalytics { get; set; } = false;
+        public string DogeAccent { get; set; } = "";
+        public bool BackgroundUpdatesEnabled { get; set; } = false;
+        public bool DebugDisableVersionPackageCleanup { get; set; } = false;
+        public string? SelectedCustomTheme { get; set; } = null;
+        public WebEnvironment WebEnvironment { get; set; } = WebEnvironment.Production;
+
+        // integration configuration
+        public bool EnableActivityTracking { get; set; } = true;
+        public bool UseDiscordRichPresence { get; set; } = true;
+        public bool HideRPCButtons { get; set; } = true;
+        public bool ShowAccountOnRichPresence { get; set; } = false;
+        public bool ShowServerDetails { get; set; } = false;
+        public ObservableCollection<CustomIntegration> CustomIntegrations { get; set; } = new();
+
+        // mod preset configuration
+        public bool UseDisableAppPatch { get; set; } = false;
+
+        // DogeStrap features - every one of them is off by default
+
+        /// <summary>Global Settings editor (GlobalBasicSettings_13.xml) + auto-creation of that file</summary>
+        public bool EnableGlobalSettingsEditor { get; set; } = false;
+
+        /// <summary>Relaunch Roblox in the same server a few seconds after it crashed</summary>
+        public bool EnableAutoRejoin { get; set; } = false;
+    }
+}

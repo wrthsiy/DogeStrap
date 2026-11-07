@@ -1,0 +1,108 @@
+﻿<ui:UiPage x:Class="Bloxstrap.UI.Elements.Settings.Pages.GlobalSettingsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:bloxstrap="clr-namespace:Bloxstrap"
+      xmlns:controls="clr-namespace:Bloxstrap.UI.Elements.Controls"
+      mc:Ignorable="d"
+      d:DesignHeight="1500" d:DesignWidth="800"
+      Title="GlobalSettingsPage"
+      Scrollable="True">
+    <StackPanel Margin="0,0,14,14">
+        <TextBlock Margin="0,0,0,8" TextWrapping="Wrap" FontSize="14"
+                   Text="Edit Roblox's GlobalBasicSettings_13.xml without opening the file. Close Roblox before saving: changes are never written while it is running, and the previous version is always kept as a .bak copy."
+                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+
+        <controls:OptionControl
+            Header="Enable Global Settings editor"
+            Description="Off by default. When on, DogeStrap also creates GlobalBasicSettings_13.xml if it doesn't exist yet (Roblox doesn't always create it by itself).">
+            <ui:ToggleSwitch IsChecked="{Binding EditorEnabled, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <StackPanel IsEnabled="{Binding EditorEnabled, Mode=OneWay}">
+            <TextBlock Margin="0,8,0,0" TextWrapping="Wrap" Text="{Binding FileStatusText, Mode=OneWay}" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+
+            <TextBlock Text="Basic" FontSize="20" FontWeight="Medium" Margin="0,16,0,0" />
+
+            <controls:OptionControl Margin="0,8,0,0"
+                Header="Graphics quality level"
+                Description="GraphicsQualityLevel, 1 (lowest) to 21 (highest). Roblox may ignore it while graphics quality is set to automatic in-game.">
+                <Grid Width="256">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Slider Grid.Column="0" Margin="0,0,8,0" Minimum="1" Maximum="21" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding GraphicsQualityLevel, Mode=TwoWay}" />
+                    <Border Margin="0,-4,0,0" Grid.Column="1" Width="30" BorderBrush="{ui:ThemeResource SolidBackgroundFillColorSecondarybrush}" Background="{ui:ThemeResource SolidBackgroundFillColorSecondarybrush}" BorderThickness="1" CornerRadius="4">
+                        <TextBlock HorizontalAlignment="Center" Padding="4" VerticalAlignment="Center" TextAlignment="Center" Text="{Binding GraphicsQualityLevel, Mode=OneWay, StringFormat={}{0:0}}" />
+                    </Border>
+                </Grid>
+            </controls:OptionControl>
+
+            <controls:OptionControl
+                Header="Framerate cap"
+                Description="FramerateCap, a whole number between -1 and 10000 (-1 is Roblox's own default).">
+                <ui:TextBox Margin="5,0,0,0" Padding="10,5,10,5" Width="200" Text="{Binding FramerateCap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PreviewTextInput="ValidateFramerate" />
+            </controls:OptionControl>
+
+            <controls:OptionControl
+                Header="UI transparency"
+                Description="PreferredTransparency, 0 to 3.">
+                <Grid Width="256">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Slider Grid.Column="0" Margin="0,0,8,0" Minimum="0" Maximum="3" TickFrequency="0.1" IsSnapToTickEnabled="True" Value="{Binding PreferredTransparency, Mode=TwoWay}" />
+                    <Border Margin="0,-4,0,0" Grid.Column="1" Width="30" BorderBrush="{ui:ThemeResource SolidBackgroundFillColorSecondarybrush}" Background="{ui:ThemeResource SolidBackgroundFillColorSecondarybrush}" BorderThickness="1" CornerRadius="4">
+                        <TextBlock HorizontalAlignment="Center" Padding="4" VerticalAlignment="Center" TextAlignment="Center" Text="{Binding PreferredTransparency, Mode=OneWay, StringFormat={}{0:0.0}}" />
+                    </Border>
+                </Grid>
+            </controls:OptionControl>
+
+            <controls:OptionControl
+                Header="Lock the file (read-only)"
+                Description="Stops Roblox from overwriting your changes when it exits. Roblox then also can't save settings you change in-game.">
+                <ui:ToggleSwitch Margin="5,0,0,0" Padding="10,5,10,5" IsChecked="{Binding LockFile, Mode=TwoWay}" />
+            </controls:OptionControl>
+
+            <Expander Margin="0,16,0,0" Header="Advanced" IsExpanded="False">
+                <StackPanel Margin="0,8,0,0">
+                    <TextBlock TextWrapping="Wrap" Text="Every other tag in the file. Only the value of an existing tag can be changed. To add a tag, fill in the empty row at the bottom: the name must match Roblox's property name exactly." Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+
+                    <DataGrid Margin="0,8,0,0" MaxHeight="420" ItemsSource="{Binding AdvancedEntries}" HeadersVisibility="Column" GridLinesVisibility="Horizontal" AutoGenerateColumns="False" CanUserAddRows="True" CanUserDeleteRows="False" CanUserReorderColumns="False" BeginningEdit="AdvancedGrid_BeginningEdit">
+                        <DataGrid.Style>
+                            <Style TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
+                                <Setter Property="Background" Value="Transparent" />
+                                <Setter Property="BorderThickness" Value="0" />
+                            </Style>
+                        </DataGrid.Style>
+
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="Background" Value="{DynamicResource ControlFillColorTertiaryBrush}" />
+                                <Setter Property="Height" Value="32" />
+                                <Setter Property="Padding" Value="8,0,8,0" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
+                                <Setter Property="BorderThickness" Value="1" />
+                            </Style>
+                        </DataGrid.ColumnHeaderStyle>
+
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="220" />
+                            <DataGridComboBoxColumn Header="Type" ItemsSource="{x:Static bloxstrap:GlobalSettingsManager.SupportedTypes}" SelectedItemBinding="{Binding Type, UpdateSourceTrigger=PropertyChanged}" Width="110" />
+                            <DataGridTextColumn Header="Value" Binding="{Binding Value}" Width="*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </Expander>
+
+            <StackPanel Margin="0,16,0,0" Orientation="Horizontal">
+                <ui:Button Icon="Save24" Content="Save" Appearance="Primary" Command="{Binding SaveCommand, Mode=OneTime}" />
+                <ui:Button Margin="8,0,0,0" Icon="ArrowClockwise24" Content="Reload from disk" Command="{Binding ReloadCommand, Mode=OneTime}" />
+            </StackPanel>
+        </StackPanel>
+    </StackPanel>
+</ui:UiPage>
