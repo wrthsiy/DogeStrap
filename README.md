@@ -21,11 +21,11 @@ If you already cloned without `--recurse-submodules`, run `git submodule update 
 
 ## Installation
 
-Download the latest published BETA release from [GitHub Releases](https://github.com/wrthsiy/DogeStrap/releases/latest) and run the versioned Windows x64 executable. The framework-dependent build requires the [.NET 10 Desktop Runtime x64](https://dotnet.microsoft.com/download/dotnet/10.0) on Windows 10 or newer. The updater uses GitHub's unauthenticated releases API, so it cannot check or download releases while the repository is private.
+Download the latest published BETA release from [GitHub Releases](https://github.com/wrthsiy/DogeStrap/releases) and run the versioned Windows x64 executable. The framework-dependent build requires the [.NET 10 Desktop Runtime x64](https://dotnet.microsoft.com/download/dotnet/10.0) on Windows 10 or newer.
 
 ## Releases and updates
 
-Pushing a new version tag in `vMAJOR.MINOR.PATCH` format builds a Windows x64 executable using that version and publishes a BETA GitHub release with the matching `DogeStrap-<tag>.exe` asset and license files. Installed production builds check the latest published release when launching Roblox and can update from that executable asset.
+Pushing a new version tag in `vMAJOR.MINOR.PATCH` format builds a Windows x64 executable using that version and publishes a BETA GitHub release with the matching `DogeStrap-<tag>.exe` asset and license files. Installed production builds check the newest published release, including BETA prereleases, when launching Roblox and can update from that executable asset.
 
 ## Credits and license
 
