@@ -12,6 +12,7 @@
 #endif
 
 using System.ComponentModel;
+using System.Security.Cryptography;
 using System.Data;
 using System.Windows;
 using System.Windows.Forms;
@@ -786,6 +787,22 @@ namespace Bloxstrap
             if (releaseInfo is null)
                 return false;
 
+            string expectedAssetName = $"DogeStrap-{releaseInfo.TagName}.exe";
+            var asset = releaseInfo.Assets!
+                .FirstOrDefault(x => String.Equals(x.Name, expectedAssetName, StringComparison.OrdinalIgnoreCase));
+
+            if (asset is null)
+            {
+                App.Logger.WriteLine(LOG_IDENT, $"Latest release is missing expected updater asset '{expectedAssetName}'");
+                return false;
+            }
+
+            if (!String.IsNullOrEmpty(asset.Digest) && !asset.Digest.StartsWith("sha256:", StringComparison.OrdinalIgnoreCase))
+            {
+                App.Logger.WriteLine(LOG_IDENT, $"Latest release asset '{asset.Name}' has an unsupported digest format; refusing automatic update");
+                return false;
+            }
+
             var versionComparison = Utilities.CompareVersions(App.Version, releaseInfo.TagName);
 
             // check if we aren't using a deployed build, so we can update to one if a new version comes out
@@ -814,20 +831,49 @@ namespace Bloxstrap
 
                 File.Copy(Paths.Process, downloadLocation, true);
 #else
-                var asset = releaseInfo.Assets![0];
-
                 string downloadLocation = Path.Combine(Paths.TempUpdates, asset.Name);
 
                 Directory.CreateDirectory(Paths.TempUpdates);
 
+                if (File.Exists(downloadLocation))
+                    File.Delete(downloadLocation);
+
                 App.Logger.WriteLine(LOG_IDENT, $"Downloading {releaseInfo.TagName}...");
                 
-                if (!File.Exists(downloadLocation))
-                {
-                    var response = await App.HttpClient.GetAsync(asset.BrowserDownloadUrl);
+                string temporaryDownloadLocation = $"{downloadLocation}.download";
 
-                    await using var fileStream = new FileStream(downloadLocation, FileMode.OpenOrCreate, FileAccess.Write);
-                    await response.Content.CopyToAsync(fileStream);
+                try
+                {
+                    using var response = await App.HttpClient.GetAsync(asset.BrowserDownloadUrl);
+                    response.EnsureSuccessStatusCode();
+
+                    await using (var fileStream = new FileStream(temporaryDownloadLocation, FileMode.Create, FileAccess.Write))
+                        await response.Content.CopyToAsync(fileStream);
+
+                    if (!String.IsNullOrEmpty(asset.Digest))
+                    {
+                        string expectedDigest = asset.Digest[7..];
+
+                        await using var verifyStream = File.OpenRead(temporaryDownloadLocation);
+                        byte[] actualHash = await SHA256.HashDataAsync(verifyStream);
+                        string actualDigest = Convert.ToHexString(actualHash);
+
+                        if (!String.Equals(actualDigest, expectedDigest, StringComparison.OrdinalIgnoreCase))
+                            throw new ChecksumFailedException($"Updater asset checksum mismatch for {asset.Name}");
+                    }
+                    else
+                    {
+                        App.Logger.WriteLine(LOG_IDENT, $"No SHA-256 digest is available for '{asset.Name}'; using the HTTPS download");
+                    }
+
+                    File.Move(temporaryDownloadLocation, downloadLocation, true);
+                }
+                catch
+                {
+                    if (File.Exists(temporaryDownloadLocation))
+                        File.Delete(temporaryDownloadLocation);
+
+                    throw;
                 }
 #endif
 

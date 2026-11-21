@@ -104,7 +104,13 @@ namespace Bloxstrap.UI.Elements.ContextMenu
 
         private void RichPresenceMenuItem_Click(object sender, RoutedEventArgs e) => _watcher.RichPresence?.SetVisibility(((MenuItem)sender).IsChecked);
 
-        private void InviteDeeplinkMenuItem_Click(object sender, RoutedEventArgs e) => Clipboard.SetDataObject(_activityWatcher?.Data.GetInviteDeeplink());
+        private void InviteDeeplinkMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            string? inviteDeeplink = _activityWatcher?.Data.GetInviteDeeplink();
+
+            if (!String.IsNullOrEmpty(inviteDeeplink))
+                Clipboard.SetDataObject(inviteDeeplink);
+        }
 
         private void ServerDetailsMenuItem_Click(object sender, RoutedEventArgs e) => ShowServerInformationWindow();
 

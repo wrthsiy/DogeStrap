@@ -15,32 +15,49 @@ jobs:
 
     - uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: '6.0.x'
+        dotnet-version: '10.0.x'
 
     - name: Restore dependencies
       run: dotnet restore
 
+    - name: Set application version
+      shell: pwsh
+      run: |
+        $version = (Select-String -Path Bloxstrap/Bloxstrap.csproj -Pattern '<Version>(.*?)</Version>').Matches.Groups[1].Value
+        if ($env:GITHUB_REF_TYPE -eq 'tag') {
+          if ($env:GITHUB_REF_NAME -notmatch '^v\d+\.\d+\.\d+$') {
+            throw "Release tags must use the vMAJOR.MINOR.PATCH format (for example v1.1.2)."
+          }
+          $version = $env:GITHUB_REF_NAME -replace '^v', ''
+        }
+        "APP_VERSION=$version" >> $env:GITHUB_ENV
+
     - name: Build
-      run: dotnet build -c Release --no-restore
+      run: dotnet build -c Release --no-restore -p:Version=${{ env.APP_VERSION }} -p:FileVersion=${{ env.APP_VERSION }}
 
     - name: Publish
-      run: dotnet publish -p:PublishSingleFile=true -p:CommitHash=${{ github.sha }} -p:CommitRef=${{ github.ref_type }}/${{ github.ref_name }} -r win-x64 -c Release --self-contained false .\Bloxstrap\Bloxstrap.csproj
+      run: dotnet publish -p:PublishSingleFile=true -p:Version=${{ env.APP_VERSION }} -p:FileVersion=${{ env.APP_VERSION }} -p:CommitHash=${{ github.sha }} -p:CommitRef=${{ github.ref_type }}/${{ github.ref_name }} -r win-x64 -c Release --self-contained false .\Bloxstrap\Bloxstrap.csproj
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v7
       with:
         name: DogeStrap (Release) (${{ github.sha }})
-        path: .\Bloxstrap\bin\Release\net6.0-windows\win-x64\publish\*
+        path: .\Bloxstrap\bin\Release\net10.0-windows\win-x64\publish\*
 
-    - name: Rename binary
+    - name: Prepare release assets
       if: startsWith(github.ref, 'refs/tags/v')
-      shell: bash
-      run: mv Bloxstrap/bin/Release/net6.0-windows/win-x64/publish/DogeStrap.exe DogeStrap-${{ github.ref_name }}.exe
+      shell: pwsh
+      run: |
+        $publishPath = "Bloxstrap/bin/Release/net10.0-windows/win-x64/publish"
+        New-Item -ItemType Directory -Path release-assets -Force | Out-Null
+        Move-Item "$publishPath/DogeStrap.exe" "release-assets/DogeStrap-$env:GITHUB_REF_NAME.exe"
+        Copy-Item LICENSE "release-assets/DogeStrap-LICENSE.txt"
+        Get-ChildItem $publishPath -Filter '*.txt' | Copy-Item -Destination release-assets
 
-    - name: Create release (draft)
+    - name: Create BETA release
       if: startsWith(github.ref, 'refs/tags/v')
       uses: softprops/action-gh-release@v2
       with:
-        draft: true
-        files: DogeStrap-${{ github.ref_name }}.exe
-        name: DogeStrap ${{ github.ref_name }}
+        files: release-assets/*
+        name: DogeStrap BETA ${{ github.ref_name }}
+        prerelease: true
